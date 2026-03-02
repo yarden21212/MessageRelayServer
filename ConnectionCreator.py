@@ -1,5 +1,5 @@
 import socket
-import HelperFunctions
+import ServerOperations
 
 HOST = ''
 
@@ -40,13 +40,13 @@ def create_connection(port):
                     data = b''
 
                     # Read the header sent from the client-side
-                    header_bytes = HelperFunctions.read_exactly_n_bytes_from_socket(23, conn, data)
+                    header_bytes = ServerOperations.read_exactly_n_bytes_from_socket(23, conn, data)
                     if header_bytes is None:
                         print("Client disconnected.")
                         break
 
                     # Decode header
-                    header = HelperFunctions.decode_header(header_bytes)
+                    header = ServerOperations.decode_header(header_bytes)
                     if header is None:
                         print("Invalid header, connection disconnected")
                         break
@@ -59,7 +59,7 @@ def create_connection(port):
                     # 3) Read payload
                     payload = b''
                     if payload_size > 0:
-                        payload = HelperFunctions.read_exactly_n_bytes_from_socket(payload_size, conn,
+                        payload = ServerOperations.read_exactly_n_bytes_from_socket(payload_size, conn,
                                                                                                 payload)
                         if payload is None:
                             print("Client disconnected (payload).")
@@ -71,12 +71,29 @@ def create_connection(port):
                     print("Debug: Payload first 16 bytes of output: ", payload[:16].hex(), "And as string:", payload[16:])
 
 
-                    if HelperFunctions.code_checker(code):
-                        request_check = HelperFunctions.request_checker(code, payload_size, payload)
-                        if request_check is True:
-                            print("Request approved:")
-                            HelperFunctions.request_checker(code, payload_size, payload)
+                    if ServerOperations.code_checker(code):
+                        print("Code approved:")
+
+                        # REGISTER (700) request
+                        if code == 700:
                             print("REGISTER REQUEST Received")
+                            try:
+                                # Validates parameters & parse the data
+                                (name_part, public_key) = ServerOperations.register_operation_handler(payload,
+                                                                                                      payload_size)
+                            except Exception as e:
+                                print("[Error]", e)
+
+
+                        elif code == 701:
+                            pass
+                        elif code == 702:
+                            pass
+                        elif code == 703:
+                            pass
+                        elif code == 704:
+                            pass
+
                         else:
                             print("Invalid REGISTER payload size")
                             print("Client disconnected.")

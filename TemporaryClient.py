@@ -1,6 +1,6 @@
 import socket
 
-with open ("myport.info.txt") as file:
+with open ("myport.info") as file:
     port_text = file.read().strip()
 try:
     if port_text:
@@ -18,7 +18,7 @@ try:
         payload_size = len(payload)
         client_id = b"\x00" * 16
         version = (1).to_bytes(1, byteorder="little")
-        code = (110).to_bytes(2, byteorder="little")
+        code = (700).to_bytes(2, byteorder="little")
         payload_size_bytes = payload_size.to_bytes(4, byteorder="little")
         header = client_id + version + code + payload_size_bytes
 
