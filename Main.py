@@ -13,22 +13,25 @@ def main():
 
             return 0
         except ValueError:
-            print(f"cannot parse the contents of {port_path} as an integer")
+            print(f"[Error]: Cannot parse the contents of {port_path} as an integer")
             return 1
+
     except FileNotFoundError:
-        print(f"File '{file_name}' doesn't exist. Using default port 1357")
+        print(f"[Error]: File '{file_name}' doesn't exist. Using default port 1357")
         port = 1357
         ConnectionCreator.create_connection(port)
-
         return 0
+
     except PermissionError:
-        print(f"Error: Permission denied. Unable to access the file '{file_name}'.")
+        print(f"[Error]: Permission denied. Unable to access the file '{file_name}'.")
         return 1
+
     except UnicodeError:
-        print(f"Error: A Unicode char was found in the file '{file_name}' .")
+        print(f"[Error]: A Unicode char was found in the file '{file_name}' .")
         return 1
+
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(f"[Error]: An unexpected error occurred: {e}")
         return 1
 
 

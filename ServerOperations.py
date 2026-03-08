@@ -1,5 +1,7 @@
 import socket
+import Database
 
+legalRequests = (700, 701, 702, 703, 704)
 
 # Read more about sockets here: https://docs.python.org/3/library/socket.html
 
@@ -44,13 +46,25 @@ def code_checker(code: int):
     else:
         return False
 
-# Checks that the info received from the client is in the right structure. For example: code = 700, payload has 415 bytes
-# def request_checker(code: int, payload_size: int, payload : bytes):
-#     if code == 700: #Registration request
-#         print("[DEBUG]: request_checker passed!")
-#         return validate_register_request(payload, payload_size)
-#     else: #TODO: missing the other options.
-#         return False
+
+def build_success_response(version: int, code: int, payload_size: int):
+
+    version_to_bytes = version.to_bytes(1, "little")
+    code_success_response_little_endian = code.to_bytes(2, "little")
+    payload_size_little_endian = payload_size.to_bytes(4, "little")
+
+    return version_to_bytes + code_success_response_little_endian + payload_size_little_endian
+
+def build_failure_response(version: int = 2):
+    version_bytes = version.to_bytes(1, "little")
+    code_bytes = (9000).to_bytes(2, "little")
+    payload_size_bytes = (0).to_bytes(4, "little")
+
+    return version_bytes + code_bytes + payload_size_bytes
+
+# ---------------------------------------------REGISTER REQUEST----------------------------------------------------
+
+
 
 # Validates the given payload contains a legal sequence of data.
 # Validates the payload is 415 bytes, name is in the size of 255 bytes & contains null terminator
@@ -90,6 +104,7 @@ def parse_register_request(payload: bytes):
     return name_part, public_key
 
 
+# Checks if payload is legal, check if the data given s successfully parsed, and returns response.
 def register_operation_handler(payload: bytes, payload_size: int):
     payload_legal = validate_register_request(payload, payload_size)
     if payload_legal:
@@ -99,7 +114,52 @@ def register_operation_handler(payload: bytes, payload_size: int):
         return name_part, public_key
     else:
         print("[DEBUG]: register_operation_handler failed")
-        raise Exception("payload and payload_size do not match in size!")
+        return None, None
+
+# Check if db's response and returns response as followed:
+# Response - 2100, 9000 : success, failure
+def check_db_registration_response(db_response: bool, uuid):
+    if db_response:
+        print("DB succeed to store the new user:", uuid)
+        return 2100
+    else:
+        print("DB failed to store the new user:")
+        return 9000
 
 
-legalRequests = (700, 701, 702, 703, 704)
+
+
+
+# ---------------------------------------------MEMBERS LIST REQUEST----------------------------------------------------
+# Get a client ID, and extract from DB a list of the other registered users in form of [ID, UserName]
+# If the given client ID doesn't exist in the DB (the ID is not registered), the process will return false
+def get_members_list_request(client_id: bytes, payload : bytes, payload_size: int, database: Database):
+
+    payload_validation =  len(payload) == 0 and payload_size == 0
+    try:
+        client_existence = database.check_client_id_existence(client_id)
+
+        if not payload_validation or not client_existence:
+            return 9000, []
+        else:
+            response, users_list = database.get_members_list_without_given_id(client_id)
+
+            # If user ID is registered and no errors occurred
+            if response:
+                return 2101, users_list
+            else:
+                return 9000, []
+
+    except Exception as e:
+        print(f"Unexpected error occurred: {e}")
+        return False, []
+
+
+
+
+
+
+
+
+
+
