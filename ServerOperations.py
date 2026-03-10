@@ -2,6 +2,7 @@ import socket
 import Database
 
 legalRequests = (700, 701, 702, 703, 704)
+message_types = (1, 2, 3, 4)
 
 # Read more about sockets here: https://docs.python.org/3/library/socket.html
 
@@ -154,12 +155,78 @@ def get_members_list_request(client_id: bytes, payload : bytes, payload_size: in
         print(f"Unexpected error occurred: {e}")
         return False, []
 
+# ---------------------------------------------GET PUBLIC KEY----------------------------------------------------
+# Request 702: A requester asks for a public-key of a target by its client-ID
+def get_user_public_key(client_id: bytes, payload : bytes, payload_size: int, database: Database):
+    target_client_id = payload
+
+    if not payload_size == 16 or not len(target_client_id) == 16:
+        return 9000, None
+    else:
+        try:
+            requester_client_existence = database.check_client_id_existence(client_id)
+            target_client_existence = database.check_client_id_existence(target_client_id)
+            if not requester_client_existence or not target_client_existence:
+                print("The requester or the target user doesn't exist in the database (not registered)")
+                return 9000, None
+            else:
+                target_client_public_key = database.get_public_key(target_client_id)
+                return 2102, target_client_public_key
+        except Exception as e:
+            print(f"{e}")
+            return 9000, None
+
+# ---------------------------------------------SEND MESSAGE TO A CLIENT----------------------------------------------------
+# Request 703: A requester client can send different messages to another client.
+def send_message_to_client(client_id: bytes, payload: bytes, payload_size: int, database: Database):
+    client_data = payload
+    if client_data is None:
+        return 9000, None
+    else:
+        requester_client_id = client_id
+        target_client_id = payload[0:16]
+        message_type = payload[16]
+        content_size = int.from_bytes(payload[17:21], "little")
+        message_content = payload[21:]
+
+        try:
+            requester_client_existence = database.check_client_id_existence(requester_client_id)
+            target_client_existence = database.check_client_id_existence(target_client_id)
+            sizes_identical = len(message_content) == content_size
+            message_type_legal = message_type in message_types
+
+            # Validates basic requirements for the request to continue
+            if not requester_client_existence or not target_client_existence:
+                print("The requester or the target user doesn't exist in the database (not registered)")
+                return 9000, None
+
+            if not sizes_identical:
+                print("The given content's size doesn't equal in size to the message_content's size")
+                return 9000, None
+            if not message_type_legal:
+                print("The given message's type is illegal (not in range of 1 - 4")
+                return 9000, None
+
+            # Check structure of request, if type = 1 -> content is empty; if 2, 3, 4 -> content in not empty
+            if message_type == 1:
+                if message_content: # Message's content is not empty for request symmetric key -> illegal structure
+                    return 9000, None
+            if message_type in (2, 3, 4):
+                if not message_content: # Content is an empty message (illegal when message type is not 1)
+                    print("The content is empty and the message type is not 1, illegal")
+                    return 9000, None
 
 
+            # Valid request:
+            message_id = database.insert_message_to_db(target_client_id, requester_client_id, message_type,message_content)
+            if message_id == -1:
+                return 9000, None
+            else:
+                return 2103, message_id
 
 
-
-
-
+        except Exception as e:
+            print(f"{e}")
+            return 9000, None
 
 

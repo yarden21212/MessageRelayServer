@@ -1,7 +1,9 @@
 import sqlite3
+import sys
 import uuid
 import datetime
 import struct
+from urllib.parse import to_bytes
 
 
 # Read more about:
@@ -126,15 +128,79 @@ class Database:
         finally:
             cur.close()
 
+    # Retrieves the public_key of the client with the given id
+    def get_public_key(self, client_id: bytes):
+        # Checking again for client_id if registered (defensive necessity)
+        client_registered = self.check_client_id_existence(client_id)
+        if not client_registered:
+            return None
+        else:
+            with sqlite3.connect(self.path) as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT PublicKey FROM clients WHERE ID = ?", [client_id])
+                public_key = cur.fetchone()
 
-string = "6CE8B00899BA48568B3FC26F88A2531D"
-print("string:", string)
-in_byte = bytes.fromhex(string)
-print("bytes:",in_byte)
-print(type(in_byte))
+                if public_key is None:
+                    return None
+                else:
+                    return public_key[0]
 
-db = Database()
-response = db.check_client_id_existence(in_byte)
-print(response)
-list_of_members = db.get_members_list_without_given_id(in_byte)
-print("List:", list_of_members)
+    # Creates a new row in the "messages" table with target_id, requester_id, message_type and message_content
+    def insert_message_to_db(self, to_client_id, from_client_id, message_type,
+                                      message_contents):
+        with sqlite3.connect(self.path) as conn:
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO messages(ToClient, FromClient, Type, Content) VALUES (?, ?, ?, ?)",
+                    (to_client_id, from_client_id, message_type, message_contents)
+                )
+                # "lastrowid": Retrieves inserted id after inserting row in SQLite
+                message_id = cur.lastrowid
+                # message_id_to_int = int(message_id)
+                conn.commit()
+
+                return message_id
+
+            # If the process fails to insert the row, -1 will be returned (ID could never be a negative number)
+            except sqlite3.IntegrityError as e:
+                print(f"[DATA BASE ERROR]: could not insert the row: {e}")
+                return -1
+            except sqlite3.Error as e:
+                print(f"Unexpected database error occurred: {e}")
+                return -1
+
+
+
+
+
+client_id = "6CE8B00899BA48568B3FC26F88A2531D"
+print("string:", client_id)
+try:
+    client_id_in_byte = bytes.fromhex(client_id)
+    print("bytes:",client_id_in_byte)
+    print(type(client_id_in_byte))
+
+    db = Database()
+    # response = db.check_client_id_existence(client_id_in_byte)
+    # print(response)
+    # list_of_members = db.get_members_list_without_given_id(client_id_in_byte)
+    # print("List:", list_of_members)
+
+    client_public_key = db.get_public_key(client_id_in_byte)
+    if not client_public_key is None:
+        print("Client_id: ", client_id_in_byte, "Public key:", client_public_key)
+    else:
+        print("Client_id: Doesn't exist in the database.")
+
+    response = db.insert_message_to_db(client_id_in_byte, client_id_in_byte, 1,
+                         b"2rfn1md21mc1nv3v2ivn2NDFJASNFAR32JIF3NFN3")
+    print(response)
+
+except Exception:
+    print("|-------------------------------------------------------------------------------------------------------------|")
+    print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
+    print("|-------------------------------------------------------------------------------------------------------------|")
+
+
+

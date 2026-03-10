@@ -5,7 +5,7 @@ import  ServerOperations
 import Database
 
 HOST = ''
-VERSION = 1
+VERSION = 2
 
 #https://realpython.com/python-sockets/ For python sockets understanding
 #https://discord.com/channels/267624335836053506/1468512436301725706 for more info
@@ -64,14 +64,21 @@ def create_connection(port):
                     code = header[2]
                     payload_size = header[3]
 
-                    if code == 701 and payload_size != 0:
+                    if code == 700 and payload_size != 415:
                         print("payload_size is illegal, server disconnected. [Probably len(payload) != payload_size]")
-                        conn.sendall(ServerOperations.build_failure_response(VERSION))
+                        conn.sendall(ServerOperations.build_failure_response(version))
                         conn.close()
-                    elif code == 702 and payload_size != 0:
+                        break
+                    elif code == 701 and payload_size != 0:
                         print("payload_size is illegal, server disconnected. [Probably len(payload) != payload_size]")
-                        conn.sendall(ServerOperations.build_failure_response(VERSION))
+                        conn.sendall(ServerOperations.build_failure_response(version))
                         conn.close()
+                        break
+                    elif code == 702 and payload_size != 16:
+                        print("payload_size is illegal, server disconnected. [Probably len(payload) != payload_size]")
+                        conn.sendall(ServerOperations.build_failure_response(version))
+                        conn.close()
+                        break
 
                     # 3) Read payload
                     payload = b''
@@ -106,26 +113,23 @@ def create_connection(port):
                                 # Success response
                                 if response_code == 2100:
 
-
-                                    # Convert header's data to bytes & little endian
-                                    version_to_bytes = VERSION.to_bytes(1, "little")
-                                    success_response_code_little_endian = response_code.to_bytes(2, "little")
-                                    payload = client_id
-                                    payload_size_little_endian = len(payload).to_bytes(4, "little")
-
-                                    header = version_to_bytes + success_response_code_little_endian + payload_size_little_endian
-                                    data = header + payload
+                                    payload = new_user_uuid
+                                    response_header = ServerOperations.build_success_response(VERSION, response_code, len(payload))
+                                    data = response_header + payload
 
                                 #Failure response
                                 else: # success_response == 9000:
+                                    response_header = ServerOperations.build_failure_response(VERSION)
+                                    data = response_header
 
-                                    header = ServerOperations.build_failure_response(VERSION)
-                                    data = header
                                 print(len(data))
                                 conn.sendall(data)
 
                             except Exception as e:
                                 print("[Error]", e)
+                                data = ServerOperations.build_failure_response(VERSION)
+                                print(len(data))
+                                conn.sendall(data)
 
 
                         elif code == 701:
@@ -157,9 +161,36 @@ def create_connection(port):
                             conn.sendall(data)
 
                         elif code == 702:
-                            pass
+                            print("PUBLIC KEY REQUEST received")
+                            server_response_code, target_public_key = ServerOperations.get_user_public_key(client_id,
+                                                                                        payload, payload_size, database)
+                            if server_response_code == 2102:
+                                target_client_id = payload
+                                payload_to_send = target_client_id + target_public_key
+                                header = ServerOperations.build_success_response(VERSION, server_response_code,
+                                                                                 len(payload_to_send))
+                                data = header + payload_to_send
+                            else: # server_response_code = 9000
+                                header = ServerOperations.build_failure_response(VERSION)
+                                data = header
+
+                            conn.sendall(data)
+
                         elif code == 703:
-                            pass
+                            print("Send MESSAGE WITH TYPE REQUEST")
+                            response_code, message_id  = ServerOperations.send_message_to_client(
+                                client_id, payload, payload_size, database)
+
+                            if response_code == 2103:
+                                respond_payload = payload[0:16] + message_id.to_bytes(4, "little")
+                                respond_header = ServerOperations.build_success_response(VERSION, response_code,
+                                                                                 len(respond_payload))
+                                data = respond_header + respond_payload
+                            else: # response_code = 9000
+                                respond_header = ServerOperations.build_failure_response(VERSION)
+                                data = respond_header
+
+                            conn.sendall(data)
                         elif code == 704:
                             pass
 
