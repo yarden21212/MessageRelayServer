@@ -3,7 +3,6 @@ import sys
 import uuid
 import datetime
 import struct
-from urllib.parse import to_bytes
 
 
 # Read more about:
@@ -170,6 +169,37 @@ class Database:
                 print(f"Unexpected database error occurred: {e}")
                 return -1
 
+    def retrieve_messages_for_id(self, client_id: bytes):
+        with sqlite3.connect(self.path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT FromClient, ID, Type, Content FROM messages WHERE ToClient = ?", [client_id])
+
+            records = cur.fetchall()
+            messages_list = []
+            print("                          FromClient          MessageID Type               ToClient,                                             Content")
+            for record in records:
+
+                from_client = record[0]
+                message_id = record[1]
+                message_type = record[2]
+                message = record[3]
+                message_size = len(message)
+
+                # Convert message ID, message type and message size to bytes from int and then store it
+                message_id, message_type, message_size =  convert_to_byte(message_id, message_type, message_size)
+                record_converted = (from_client, message_id, message_type, message_size, message)
+                messages_list.append(record_converted)
+
+            return True, messages_list
+
+
+
+def convert_to_byte(message_id, message_type, message_size):
+    message_id_to_bytes = message_id.to_bytes(4, byteorder='little')
+    message_type_to_bytes = message_type.to_bytes(1, byteorder='little')
+    message_size_to_bytes = message_size.to_bytes(4, byteorder='little')
+
+    return message_id_to_bytes, message_type_to_bytes, message_size_to_bytes
 
 
 
@@ -193,11 +223,16 @@ try:
     else:
         print("Client_id: Doesn't exist in the database.")
 
-    response = db.insert_message_to_db(client_id_in_byte, client_id_in_byte, 1,
-                         b"2rfn1md21mc1nv3v2ivn2NDFJASNFAR32JIF3NFN3")
-    print(response)
+    # response = db.insert_message_to_db(client_id_in_byte, client_id_in_byte, 1,
+    #                      b"2rfn1md21mc1nv3v2ivn2NDFJASNFAR32JIF3NFN3")
+    # print(response)
 
-except Exception:
+    print("Print messages:")
+    messages_list = db.retrieve_messages_for_id(client_id_in_byte)
+    print(messages_list)
+
+except Exception as e:
+    print(f"[DATABASE ERROR:] {e}")
     print("|-------------------------------------------------------------------------------------------------------------|")
     print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
     print("|-------------------------------------------------------------------------------------------------------------|")

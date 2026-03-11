@@ -183,7 +183,38 @@ def create_connection(port):
                                 conn.sendall(data)
 
                             elif code == 704:
-                                pass
+                                print("Debug 1")
+                                data = b""
+
+                                if payload_size != 0 and len(payload) != 0:
+                                    print("Debug 2.1")
+                                    print("Invalid payload given by the client. Payload needs to be empty!")
+                                    data = ServerOperations.build_failure_response(VERSION)
+
+                                print("Debug 2.2")
+                                response_code, records_list = ServerOperations.retrieve_hanging_messages(client_id,
+                                                                                                   database)
+                                print("Debug 3")
+                                data = b""
+                                print("Debug 3.1")
+                                print("debug response:", response_code)
+                                if response_code == 9000:
+                                    print("Debug 4.1")
+                                    print("Invalid payload given OR len(payload) != payload_size")
+                                    data = ServerOperations.build_failure_response(VERSION)
+                                print("Debug 4.2")
+                                if response_code == 2104:
+
+                                    payload = b""
+                                    for record in records_list:
+                                        print("Debug 5")
+                                        payload += record[0] + record[1] + record[2] + record[3] + record[4]
+
+                                    header = ServerOperations.build_success_response(VERSION, response_code, len(payload))
+                                    print("Debug 6")
+                                    data = header + payload
+                                print("Debug 7")
+                                conn.sendall(data)
 
                             else:
                                 print("Invalid REGISTER payload size")
@@ -196,6 +227,6 @@ def create_connection(port):
                             break
 
     except OSError:
-        print("Connection refused")
+        print("[ConnectionCreator ERROR]:Connection refused")
         # FIX: removed "addr" from here
         # Why: if accept() never succeeded, addr does not exist yet

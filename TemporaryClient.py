@@ -12,7 +12,7 @@ try:
         print("port content: ", port)
 
         # 1 ClientID
-        hex_client_id = "13D66E18CE14410FABE2E51EFDD25E81"
+        hex_client_id = "6CE8B00899BA48568B3FC26F88A2531D"
         client_id_bytes = bytes.fromhex(hex_client_id)
 
         # 2 Version
@@ -36,7 +36,7 @@ try:
                 code_int = int(code)
                 code_to_bytes = code_int.to_bytes(2, byteorder="little")
 
-                if code not in ("700", "701", "702", "703"):
+                if code not in ("700", "701", "702", "703", "704"):
                     print("Invalid request code.")
                     continue
 
@@ -95,6 +95,10 @@ try:
                             payload = target_client_id_bytes + message_type_to_bytes + content_size + content
 
                         payload_size_bytes = len(payload).to_bytes(4, byteorder="little")
+                elif(code == "704"):
+                    payload = b""
+                    payload_size_bytes = (0).to_bytes(4, byteorder="little")
+
 
                 header = client_id_bytes + version_to_bytes + code_to_bytes + payload_size_bytes
 
@@ -110,17 +114,34 @@ try:
                 sock.sendall(header + payload)
                 print("sent")
 
-                data = sock.recv(1024)
+                header = DisplayDifferentResponses.read_exactly(sock, 7)
+                payload_size = struct.unpack("<BHI", header)[2]
+                payload = DisplayDifferentResponses.read_exactly(sock, payload_size)
+                data = header + payload
+
                 if not data:
                     print("Server closed the connection.")
                     break
 
-                print(f"Received {data!r}")
                 responses = DisplayDifferentResponses.DisplayDifferentResponses()
 
-                print("code:", code)
-                if code == "701":
+                request_code = code
+                response_code = int.from_bytes(data[1:3], "little")
+
+                print("\nRequest code:", request_code)
+                print("Response code:", response_code)
+
+                print("\n================ RAW RESPONSE =================")
+                print(data)
+                print("===============================================")
+
+                if request_code == "701":
                     responses.display701(data)
+
+                elif request_code == "704":
+                    print("\n================ PARSED MESSAGES ===============")
+                    DisplayDifferentResponses.parse_2104_response(data)
+
 
                 code = int.from_bytes(data[1:3], "little")
                 print(f"Response code:", code)

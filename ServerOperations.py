@@ -229,4 +229,49 @@ def send_message_to_client(client_id: bytes, payload: bytes, payload_size: int, 
             print(f"{e}")
             return 9000, None
 
+# ---------------------------------------------Retrieve_hanging_messages-------------------------------------------
+def retrieve_hanging_messages(requester_id: bytes , database: Database):
+    try:
+        client_existence = database.check_client_id_existence(requester_id)
 
+        # If requester ID doesn't exist in the DB (user is not registered) then reject the request
+        if not client_existence:
+            return 9000, []
+
+        else:
+            response, records_list = database.retrieve_messages_for_id(requester_id)
+            if response:
+                return 2104, records_list
+            else:
+                return 9000, []
+    except Exception as e:
+        print(f"{e}")
+        return 9000, None
+
+
+
+
+
+
+
+#--------------------------------------------------Debugging--------------------------------------------------------
+client_id = "6CE8B00899BA48568B3FC26F88A2531D"
+print("string:", client_id)
+try:
+    client_id_in_byte = bytes.fromhex(client_id)
+    print("bytes:",client_id_in_byte)
+    print(type(client_id_in_byte))
+
+    db = Database.Database()
+
+    response, records_list = retrieve_hanging_messages(client_id_in_byte, db)
+    print("Print messages:")
+    print(records_list)
+    print(type(records_list))
+    print(type(records_list[0]))
+
+except Exception as e:
+    print(e)
+    print("|-------------------------------------------------------------------------------------------------------------|")
+    print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
+    print("|-------------------------------------------------------------------------------------------------------------|")
