@@ -11,7 +11,7 @@ import struct
 # https://www.zetcode.com/python/sqlite3-error/
 # https://www.pythonlore.com/handling-sqlite3-database-exceptions-and-errors/
 class Database:
-    def __init__(self, db_path = "defensive.db"):
+    def __init__(self, db_path="defensive.db"):
         self.path = db_path
 
     # Table creation:
@@ -20,22 +20,51 @@ class Database:
     def create_table(self):
 
         with sqlite3.connect(self.path) as conn:
+            conn.executescript("""
+                               CREATE TABLE IF NOT EXISTS clients
+                               (
+                                   ID
+                                   BLOB
+                                   PRIMARY
+                                   KEY,
+                                   UserName
+                                   TEXT
+                                   UNIQUE
+                                   NOT
+                                   NULL,
+                                   PublicKey
+                                   BLOB
+                                   NOT
+                                   NULL,
+                                   LastSeen
+                                   TEXT
+                                   NOT
+                                   NULL
+                               );
 
-            conn.executescript(""" 
-                CREATE TABLE IF NOT EXISTS clients(
-                    ID BLOB PRIMARY KEY,
-                    UserName TEXT UNIQUE NOT NULL,
-                    PublicKey BLOB NOT NULL,
-                    LastSeen TEXT NOT NULL
-                );
-    
-                CREATE TABLE IF NOT EXISTS messages( 
-                    ID INTEGER PRIMARY KEY,
-                    ToClient BLOB NOT NULL,
-                    FromClient BLOB NOT NULL,
-                    Type INTEGER NOT NULL,
-                    Content BLOB NOT NULL
-                );
+                               CREATE TABLE IF NOT EXISTS messages
+                               (
+                                   ID
+                                   INTEGER
+                                   PRIMARY
+                                   KEY,
+                                   ToClient
+                                   BLOB
+                                   NOT
+                                   NULL,
+                                   FromClient
+                                   BLOB
+                                   NOT
+                                   NULL,
+                                   Type
+                                   INTEGER
+                                   NOT
+                                   NULL,
+                                   Content
+                                   BLOB
+                                   NOT
+                                   NULL
+                               );
                                """)
             conn.commit()
 
@@ -46,11 +75,11 @@ class Database:
             with sqlite3.connect(self.path) as conn:
                 cur = conn.cursor()
 
-                new_uuid = uuid.uuid4().bytes # Conversion to bytes (16 bytes as requested)
+                new_uuid = uuid.uuid4().bytes  # Conversion to bytes (16 bytes as requested)
                 last_seen = str(datetime.datetime.now(datetime.timezone.utc))
 
                 cur.execute("INSERT INTO clients(ID, UserName, PublicKey, LastSeen) VALUES(?,?,?,?)"
-                        , [new_uuid, username, publickey, last_seen])
+                            , [new_uuid, username, publickey, last_seen])
 
                 conn.commit()
                 print(f"[{new_uuid.hex()}] User {username} registered successfully.")
@@ -61,7 +90,7 @@ class Database:
             print("Username with the given name already exists in the database.")
             return False, None
         except sqlite3.OperationalError as e:
-        # Two processes accessing the same database. The second process fails  it can't acquire a lock.
+            # Two processes accessing the same database. The second process fails  it can't acquire a lock.
             print(f"Database locked error: {e}")
         except sqlite3.Error as e:
             print(f"Unexpected database error occurred: {e}")
@@ -69,7 +98,6 @@ class Database:
 
             conn.close()
             conn.close()
-
 
     # Check if the given client_id exists in the DB, means client is registered (stored in the DB)
     def check_client_id_existence(self, client_id: bytes):
@@ -146,7 +174,7 @@ class Database:
 
     # Creates a new row in the "messages" table with target_id, requester_id, message_type and message_content
     def insert_message_to_db(self, to_client_id, from_client_id, message_type,
-                                      message_contents):
+                             message_contents):
         with sqlite3.connect(self.path) as conn:
             try:
                 cur = conn.cursor()
@@ -176,9 +204,9 @@ class Database:
 
             records = cur.fetchall()
             messages_list = []
-            print("                          FromClient          MessageID Type               ToClient,                                             Content")
+            print(
+                "                          FromClient          MessageID Type               ToClient,                                             Content")
             for record in records:
-
                 from_client = record[0]
                 message_id = record[1]
                 message_type = record[2]
@@ -186,12 +214,11 @@ class Database:
                 message_size = len(message)
 
                 # Convert message ID, message type and message size to bytes from int and then store it
-                message_id, message_type, message_size =  convert_to_byte(message_id, message_type, message_size)
+                message_id, message_type, message_size = convert_to_byte(message_id, message_type, message_size)
                 record_converted = (from_client, message_id, message_type, message_size, message)
                 messages_list.append(record_converted)
 
             return True, messages_list
-
 
 
 def convert_to_byte(message_id, message_type, message_size):
@@ -202,13 +229,11 @@ def convert_to_byte(message_id, message_type, message_size):
     return message_id_to_bytes, message_type_to_bytes, message_size_to_bytes
 
 
-
-
 client_id = "6CE8B00899BA48568B3FC26F88A2531D"
 print("string:", client_id)
 try:
     client_id_in_byte = bytes.fromhex(client_id)
-    print("bytes:",client_id_in_byte)
+    print("bytes:", client_id_in_byte)
     print(type(client_id_in_byte))
 
     db = Database()
@@ -233,9 +258,9 @@ try:
 
 except Exception as e:
     print(f"[DATABASE ERROR:] {e}")
-    print("|-------------------------------------------------------------------------------------------------------------|")
-    print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
-    print("|-------------------------------------------------------------------------------------------------------------|")
-
-
-
+    print(
+        "|-------------------------------------------------------------------------------------------------------------|")
+    print(
+        "| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
+    print(
+        "|-------------------------------------------------------------------------------------------------------------|")
