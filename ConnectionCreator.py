@@ -44,7 +44,7 @@ def create_connection(port):
                         data = b''
 
                         # Read the header sent from the client-side
-                        header_bytes = server_operations.read_exactly_n_bytes_from_socket(23, conn, data)
+                        header_bytes = server_operations.read_exactly_n_bytes_from_socket(23, conn)
                         if header_bytes is None:
                             print("Client disconnected.")
                             break
@@ -80,7 +80,7 @@ def create_connection(port):
                         payload = b''
                         if payload_size > 0:
                             print("Here: payload_size > 0")
-                            payload = server_operations.read_exactly_n_bytes_from_socket(payload_size, conn, payload)
+                            payload = server_operations.read_exactly_n_bytes_from_socket(payload_size, conn)
                             if payload is None:
                                 print("Client disconnected (payload).")
                                 break
@@ -139,7 +139,7 @@ def create_connection(port):
                                     data = header + payload
 
                                 else:
-                                    header = ServerOperations.build_failure_response(VERSION)
+                                    header = server_operations.build_failure_response(VERSION)
                                     data = header
 
                                 print("data size:", len(data))

@@ -21,50 +21,22 @@ class Database:
 
         with sqlite3.connect(self.path) as conn:
             conn.executescript("""
-                               CREATE TABLE IF NOT EXISTS clients
-                               (
-                                   ID
-                                   BLOB
-                                   PRIMARY
-                                   KEY,
-                                   UserName
-                                   TEXT
-                                   UNIQUE
-                                   NOT
-                                   NULL,
-                                   PublicKey
-                                   BLOB
-                                   NOT
-                                   NULL,
-                                   LastSeen
-                                   TEXT
-                                   NOT
-                                   NULL
-                               );
+                                CREATE TABLE IF NOT EXISTS clients
+                                (
+                                    ID BLOB PRIMARY KEY,
+                                    UserName TEXT UNIQUE NOT NULL,
+                                    PublicKey BLOB NOT NULL,
+                                    LastSeen TEXT NOT NULL
+                                );
 
-                               CREATE TABLE IF NOT EXISTS messages
-                               (
-                                   ID
-                                   INTEGER
-                                   PRIMARY
-                                   KEY,
-                                   ToClient
-                                   BLOB
-                                   NOT
-                                   NULL,
-                                   FromClient
-                                   BLOB
-                                   NOT
-                                   NULL,
-                                   Type
-                                   INTEGER
-                                   NOT
-                                   NULL,
-                                   Content
-                                   BLOB
-                                   NOT
-                                   NULL
-                               );
+                                CREATE TABLE IF NOT EXISTS messages
+                                (
+                                    ID INTEGER PRIMARY KEY,
+                                    ToClient BLOB NOT NULL,
+                                    FromClient BLOB NOT NULL,
+                                    Type INTEGER NOT NULL,
+                                    Content BLOB NOT NULL
+                                );
                                """)
             conn.commit()
 
@@ -264,3 +236,5 @@ except Exception as e:
         "| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
     print(
         "|-------------------------------------------------------------------------------------------------------------|")
+
+

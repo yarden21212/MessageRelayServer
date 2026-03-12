@@ -13,9 +13,10 @@ class ServerOperations:
     # Extracts the data from the tcp stream, waiting until the whole data transferred and then continue
     # We enter data = b'' which is an empty byte stream, so len(data) = 0.
     # The loop will continue transfer chunks of bytes until the first n bytes are transferred.
-    def read_exactly_n_bytes_from_socket(self, n: int, conn: socket.socket, data):
+    def read_exactly_n_bytes_from_socket(self, n: int, conn: socket.socket):
 
         try:
+            data = b""
             while len(data) < n:
                 chunk = conn.recv(n - len(data))
                 if chunk == b'':  # Empty bytes object indicates that the client has disconnected.
