@@ -1,8 +1,6 @@
 import sqlite3
-import sys
 import uuid
 import datetime
-import struct
 
 
 # Read more about:

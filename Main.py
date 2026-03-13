@@ -39,4 +39,3 @@ def main():
 if __name__ == "__main__":
     sys.exit(main())
 
-# To understand the build better: https://discord.com/channels/267624335836053506/1469317566999695435

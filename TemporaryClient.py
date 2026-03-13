@@ -1,3 +1,6 @@
+# A file to check my server, no need to be checked. Totally irrelevant.
+# Will be deleted once the project is done.
+
 import socket
 import struct
 import DisplayDifferentResponses

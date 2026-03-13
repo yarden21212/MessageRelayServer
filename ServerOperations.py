@@ -1,16 +1,13 @@
 import socket
 import Database
 
-    # legalRequests = (700, 701, 702, 703, 704)
-    # message_types = (1, 2, 3, 4)
-
 class ServerOperations:
     def __init__(self):
         self.legalRequests = (700, 701, 702, 703, 704)
         self.message_types = (1, 2, 3, 4)
     # Read more about sockets here: https://docs.python.org/3/library/socket.html
 
-    # Extracts the data from the tcp stream, waiting until the whole data transferred and then continue
+    # Extracts the data from the stream, waiting until the whole data transferred and then continue
     # We enter data = b'' which is an empty byte stream, so len(data) = 0.
     # The loop will continue transfer chunks of bytes until the first n bytes are transferred.
     def read_exactly_n_bytes_from_socket(self, n: int, conn: socket.socket):
