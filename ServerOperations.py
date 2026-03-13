@@ -260,23 +260,23 @@ class ServerOperations:
 
 
 #--------------------------------------------------Debugging--------------------------------------------------------
-client_id = "6CE8B00899BA48568B3FC26F88A2531D"
-print("string:", client_id)
-try:
-    client_id_in_byte = bytes.fromhex(client_id)
-    print("bytes:",client_id_in_byte)
-    print(type(client_id_in_byte))
-
-    db = Database.Database()
-
-    response, records_list = retrieve_hanging_messages(client_id_in_byte, db)
-    print("Print messages:")
-    print(records_list)
-    print(type(records_list))
-    print(type(records_list[0]))
-
-except Exception as e:
-    print(e)
-    print("|-------------------------------------------------------------------------------------------------------------|")
-    print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
-    print("|-------------------------------------------------------------------------------------------------------------|")
+# client_id = "6CE8B00899BA48568B3FC26F88A2531D"
+# print("string:", client_id)
+# try:
+#     client_id_in_byte = bytes.fromhex(client_id)
+#     print("bytes:",client_id_in_byte)
+#     print(type(client_id_in_byte))
+#
+#     db = Database.Database()
+#
+#     response, records_list = retrieve_hanging_messages(client_id_in_byte, db)
+#     print("Print messages:")
+#     print(records_list)
+#     print(type(records_list))
+#     print(type(records_list[0]))
+#
+# except Exception as e:
+#     print(e)
+#     print("|-------------------------------------------------------------------------------------------------------------|")
+#     print("| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
+#     print("|-------------------------------------------------------------------------------------------------------------|")

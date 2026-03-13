@@ -200,41 +200,41 @@ def convert_to_byte(message_id, message_type, message_size):
 
     return message_id_to_bytes, message_type_to_bytes, message_size_to_bytes
 
-
-client_id = "6CE8B00899BA48568B3FC26F88A2531D"
-print("string:", client_id)
-try:
-    client_id_in_byte = bytes.fromhex(client_id)
-    print("bytes:", client_id_in_byte)
-    print(type(client_id_in_byte))
-
-    db = Database()
-    # response = db.check_client_id_existence(client_id_in_byte)
-    # print(response)
-    # list_of_members = db.get_members_list_without_given_id(client_id_in_byte)
-    # print("List:", list_of_members)
-
-    client_public_key = db.get_public_key(client_id_in_byte)
-    if not client_public_key is None:
-        print("Client_id: ", client_id_in_byte, "Public key:", client_public_key)
-    else:
-        print("Client_id: Doesn't exist in the database.")
-
-    # response = db.insert_message_to_db(client_id_in_byte, client_id_in_byte, 1,
-    #                      b"2rfn1md21mc1nv3v2ivn2NDFJASNFAR32JIF3NFN3")
-    # print(response)
-
-    print("Print messages:")
-    messages_list = db.retrieve_messages_for_id(client_id_in_byte)
-    print(messages_list)
-
-except Exception as e:
-    print(f"[DATABASE ERROR:] {e}")
-    print(
-        "|-------------------------------------------------------------------------------------------------------------|")
-    print(
-        "| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
-    print(
-        "|-------------------------------------------------------------------------------------------------------------|")
-
+#------------------------------- Debugging ------------------------------------------------------
+# client_id = "6CE8B00899BA48568B3FC26F88A2531D"
+# print("string:", client_id)
+# try:
+#     client_id_in_byte = bytes.fromhex(client_id)
+#     print("bytes:", client_id_in_byte)
+#     print(type(client_id_in_byte))
+#
+#     db = Database()
+#     # response = db.check_client_id_existence(client_id_in_byte)
+#     # print(response)
+#     # list_of_members = db.get_members_list_without_given_id(client_id_in_byte)
+#     # print("List:", list_of_members)
+#
+#     client_public_key = db.get_public_key(client_id_in_byte)
+#     if not client_public_key is None:
+#         print("Client_id: ", client_id_in_byte, "Public key:", client_public_key)
+#     else:
+#         print("Client_id: Doesn't exist in the database.")
+#
+#     # response = db.insert_message_to_db(client_id_in_byte, client_id_in_byte, 1,
+#     #                      b"2rfn1md21mc1nv3v2ivn2NDFJASNFAR32JIF3NFN3")
+#     # print(response)
+#
+#     print("Print messages:")
+#     messages_list = db.retrieve_messages_for_id(client_id_in_byte)
+#     print(messages_list)
+#
+# except Exception as e:
+#     print(f"[DATABASE ERROR:] {e}")
+#     print(
+#         "|-------------------------------------------------------------------------------------------------------------|")
+#     print(
+#         "| [ERROR]: Make sure all the chars given are hexa chars. For example 'S', 's' 'x', etc... are not hexa chars  |")
+#     print(
+#         "|-------------------------------------------------------------------------------------------------------------|")
+#
 
