@@ -54,14 +54,19 @@ def accept(sock, mask):
     #         sel.register(conn, selectors.EVENT_READ, read)
 
 def read(conn, mask):
-
-    data = start_application(conn, database)
-    if data:
-        print('echoing', repr(data), 'to', conn)
-        conn.send(data)
-    else:
-        print('closing', conn)
-        sel.unregister(conn)
+    try:
+        data = start_application(conn, database)
+        if data:
+            print('echoing', repr(data), 'to', conn)
+            print('Im totally here1')
+            conn.send(data)
+            print('Im totally here2')
+        else:
+            print('closing', conn)
+            sel.unregister(conn)
+            conn.close()
+    except Exception as e:
+        print("[READ ERROR]:", e)
         conn.close()
 
 # The whole logic it-self. The heart of the server.
@@ -73,19 +78,21 @@ def start_application(conn: socket.socket, database: Database.Database):
     header_bytes = server_operations.read_exactly_n_bytes_from_socket(23, conn)
     if header_bytes is None:
         print("Client disconnected.")
-        exit()
+        return None
 
     # Decode header
     header = server_operations.decode_header(header_bytes)
     if header is None:
         print("Invalid header, connection disconnected")
-        exit()
+        return None
 
     client_id = header[0]
     version = header[1]
     code = header[2]
     payload_size = header[3]
 
+    print("code:", code)
+    print("payload_size:", payload_size)
     if code == 700 and payload_size != 415:
         print("payload_size is illegal, server disconnected. [Probably len(payload) != payload_size]")
         return server_operations.build_failure_response(version)
@@ -105,7 +112,7 @@ def start_application(conn: socket.socket, database: Database.Database):
         payload = server_operations.read_exactly_n_bytes_from_socket(payload_size, conn)
         if payload is None:
             print("Client disconnected (payload).")
-            exit()
+            return None
 
     print("Debug:", "client_id(hex) =", client_id.hex(), "version =", version,
           "code =", code, "payload_size =", payload_size, "payload length =", len(payload))
@@ -135,6 +142,7 @@ def start_application(conn: socket.socket, database: Database.Database):
                     data = response_header
 
                 print(len(data))
+                print("data to send back to the client is:", data)
                 return data
 
             except Exception as e:
@@ -241,9 +249,9 @@ def start_application(conn: socket.socket, database: Database.Database):
         else:
             print("Invalid REGISTER payload size")
             print("Client disconnected.")
-            exit()
+            return None
 
     else:
         print("Illegal code request:", code)
         print("Client disconnected.")
-        exit()
+        return None

@@ -64,10 +64,6 @@ class Database:
             print(f"Database locked error: {e}")
         except sqlite3.Error as e:
             print(f"Unexpected database error occurred: {e}")
-        finally:
-
-            conn.close()
-            conn.close()
 
     # Check if the given client_id exists in the DB, means client is registered (stored in the DB)
     def check_client_id_existence(self, client_id: bytes):
@@ -95,9 +91,6 @@ class Database:
         except sqlite3.Error as e:
             print(f"Unexpected database error occurred: {e}")
 
-        finally:
-            cur.close()
-
     # Collect all pairs of [ID, UserName] from the database except for client_id
     def get_members_list_without_given_id(self, client_id: bytes):
 
@@ -121,9 +114,6 @@ class Database:
         except sqlite3.Error as e:
             print(f"Unexpected database error occurred: {e}")
             return False, None
-
-        finally:
-            cur.close()
 
     # Retrieves the public_key of the client with the given id
     def get_public_key(self, client_id: bytes):
