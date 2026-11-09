@@ -75,3 +75,5 @@ MessageRelay was developed as a university project to explore the fundamentals o
 Unlike web-based messaging applications that rely on existing HTTP APIs, this project uses direct TCP socket communication and a custom binary protocol.
 
 The project provided practical experience with implementing communication between applications written in different programming languages, handling binary data, integrating encryption, and maintaining persistent records in a database.
+
+[Client-side link](https://github.com/yarden21212/MessageRelayClient)
